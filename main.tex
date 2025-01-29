@@ -83,6 +83,12 @@ If have time - ThreadPoolExecutor and ProcessPoolExecutor
 % https://docs.python.org/3.6/library/concurrent.futures.html?highlight=concurrent%20futures#processpoolexecutor
 
 \section{Algorithms Used}
+\subsection{Benchmark isolation}
+In order to isolate the benchmark code from the disturbances of the host system an precaution has been taken - the code is being run in a container. This will further exaggerate the differences between each of the techniques and algorithms.
+
+\subsection{Reproducibility of results}
+Using pseudorandom distribution with the default seed in Python (which is the current time in seconds since Epoch) leads to unreliable reproducibility on different machines. The approach to mitigate this issue is that we provide an external seed that is chosen as some integer (by default 3735928559).
+
 \subsection{Sequential}
 The code can be found at \figref{fig:sequential}
 
