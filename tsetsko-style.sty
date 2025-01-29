@@ -1,0 +1,232 @@
+\ProvidesPackage{tsetsko-style}
+
+\usepackage[T1]{fontenc}
+% \usepackage[X2,T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{setspace}
+\usepackage{fontawesome5}
+
+\usepackage{csquotes}
+\usepackage{marginnote}
+
+\usepackage[english]{babel}
+
+\usepackage{fancyhdr}
+\usepackage{darkmode}
+\usepackage{ifthen}
+% \usepackage{footmisc}
+% \usepackage{calc}
+\usepackage{titling}
+
+\usepackage{float}
+\usepackage{caption}
+
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{mathtext}
+\usepackage{mathtools}
+\usepackage[only,llbracket,rrbracket]{stmaryrd}
+
+\usepackage{enumerate}
+\usepackage{enumitem}
+
+\usepackage{array}
+\usepackage{scalerel}
+\usepackage{multicol}
+
+\usepackage{biblatex}
+
+% ===================================
+% Tikz
+% ===================================
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning, fit}
+\usepackage{tikz-cd} % https://ctan.math.washington.edu/tex-archive/graphics/pgf/contrib/tikz-cd/tikz-cd-doc.pdf
+\newenvironment{ctdiag}{%
+  \shorthandoff{"}%
+  \begin{tikzcd}[sep = huge]%
+    }{% 
+  \end{tikzcd}%
+  \shorthandon{"}%
+}
+
+% \usepackage{pgfplots}
+% \usepackage{stackengine}
+\definecolor{applegreen}{rgb}{0.55, 0.71, 0.05}
+
+% ===================================
+% Settings
+% ===================================
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{
+  \thetitle
+}
+\fancyfoot[R]{\thepage}
+% \lhead{
+%   \theauthor
+% }
+% \rfoot{\thepage}
+
+\renewcommand*{\thesection}{\arabic{section}}
+
+\usepackage[unicode]{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=cyan,
+  filecolor=magenta,
+  urlcolor=cyan,
+}
+
+% ===================================
+% Commands
+% ===================================
+\theoremstyle{plain}
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{lemma}{Лема}[section]
+\newtheorem{proposition}{Твърдение}[section]
+
+\theoremstyle{definition}
+\newtheorem{problem}{Problem}
+\newtheorem{example}{Пример}[section]
+\newtheorem{notation}{Означение}[section]
+\newtheorem{definition}{Дефиниция}[section]
+\newtheorem{corollary}{Следствие}[section]
+
+\theoremstyle{remark}
+\newtheorem{fact}{Факт}[section]
+\newtheorem{remark}{Забележка}[section]
+\newtheorem{solution}{Solution}
+\newtheorem{hint}{Упътване}[section]
+
+% \def\proof{\textbf {Доказателство: }}%[section]
+\renewcommand*{\proofname}{Доказателство}
+
+\newcommand{\thref}[1]{\text{Теорема \ref{#1}}}
+\newcommand{\lemref}[1]{\text{Лема \ref{#1}}}
+\newcommand{\exampleref}[1]{\text{Пример \ref{#1}}}
+\newcommand{\defref}[1]{\text{Дефиниция \ref{#1}}}
+\newcommand{\corref}[1]{\text{Следствие \ref{#1}}}
+\newcommand{\propref}[1]{\text{Твърдение \ref{#1}}}
+% \newcommand{\exerciseref}[1]{\text{Задача \ref{#1}}}
+\newcommand{\exerciseref}[1]{\text{Exercise \ref{#1}}}
+\newcommand{\solref}[1]{\text{Решение \ref{#1}}}
+\newcommand{\remarkref}[1]{\text{Забележка \ref{#1}}}
+\newcommand{\figref}[1]{\figurename~\ref{#1}}
+\newcommand{\eqnref}[1]{Уравнение \ref{#1}}
+
+\newcommand{\seeref}[1]{вж. \ref{#1}}
+
+\newcommand{\email}[1]{\href{mailto:#1}{#1}}
+
+\newcommand{\ubss}{{\overset{\text{УБСС}}{\Longrightarrow}}}
+\newcommand{\N}{{\mathbb{N}}}
+\newcommand{\Z}{{\mathbb{Z}}}
+\newcommand{\Q}{{\mathbb{Q}}}
+\newcommand{\R}{{\mathbb{R}}}
+\newcommand{\lequiv}{\models\!\mid}
+\newcommand{\bydef}{{\overset{def}{\iff}}}
+
+\DeclareMathOperator*{\maxi}{max}
+\DeclareMathOperator*{\dom}{dom}
+\DeclareMathOperator*{\ran}{range}
+\DeclareMathOperator*{\cod}{cod}
+\DeclareMathOperator*{\id}{id}
+\DeclareMathOperator*{\sign}{sign}
+\DeclareMathOperator*{\amper}{\scalerel*{\&}{\sum}}
+\DeclareMathOperator*{\biglor}{\scalerel*{\lor}{\sum}}
+
+\newcommand*{\abs}[1]{\ensuremath{\left|#1\right|}}
+\newcommand*{\vect}[1]{\ensuremath{\left\langle#1\right\rangle}}
+\newcommand*{\set}[1]{\ensuremath{\left\{#1\right\}}}
+\newcommand*{\lrharp}{\ensuremath{\leftrightharpoons}}
+\newcommand*{\lrarr}{\ensuremath{\leftrightarrow}}
+
+\newcommand*{\true}{\textbf{true}}
+\newcommand*{\false}{\textbf{false}}
+
+\newcommand*{\lto}{\ensuremath{\longrightarrow}}
+\newcommand*{\monicarr}{\ensuremath{\rightarrowtail}}
+\newcommand*{\epicarr}{\ensuremath{\twoheadrightarrow}}
+\newcommand*{\embedarr}{\ensuremath{\hookrightarrow}}
+\newcommand*{\iso}{\ensuremath{\simeq}}
+
+% Modal logic
+\newcommand*{\model}[1]{\ensuremath{\mathfrak{#1}}}
+\newcommand*{\mframe}[1]{\ensuremath{\mathfrak{#1}}}
+\newcommand*{\gensub}{\ensuremath{\underrightarrow{\subset}}}
+
+\renewcommand*{\&}{%
+  \relax
+  \ifmmode
+    \mathbin{\char`\&}%
+  \else
+    \char`\&\relax
+  \fi
+}
+
+\usepackage{listings}
+
+% LP Specific
+\usepackage{xskak}
+
+% 
+% \rotatebox[origin=c]{180}{$\mathbb{A}$} $\forall$
+% \reflectbox{$\mathbb{E}$} $\exists$
+% 
+
+\makeatletter
+\newcommand*{\eexists}{%
+  {\mathpalette\eexistsAux{}}%
+}
+\newcommand*{\eexistsAux}[2]{%
+  \exists
+  \sbox0{$\m@th#1\exists$}%
+  \sbox2{\raisebox{\depth}{$\m@th#1|$}}%
+  \kern-.5\wd2 %
+  \resizebox{\width}{\ht0}{\copy2}%
+  \kern-.25\wd2 %
+}
+
+\newcommand*{\fforall}{%
+  {\mathpalette\fforallAux{}}%
+}
+\newcommand*{\fforallAuxx}[1]{%
+  \sbox0{$\m@th#1\forall$}%
+  \sbox2{%
+    \rlap{%
+      \raisebox{\depth}{$\m@th#1\backslash$}%
+    }%
+    \kern\ht0 %
+  }%
+  \sbox2{\resizebox{\ht2}{\height}{\copy2}}%
+  \sbox2{\resizebox{!}{\ht0}{\copy2}}%
+  \wd2=0pt %
+  \copy2
+  \forall
+}
+\newsavebox\forallBox
+\newdimen\forallLineWidth
+\newdimen\forallSep
+\newcommand*{\fforallAux}[1]{%
+  \sbox\forallBox{$\m@th#1\forall$}%
+  \setlength{\forallLineWidth}{.06\wd\forallBox}%
+  \setlength{\forallSep}{.09\wd\forallBox}%
+  \tikz[
+    inner sep=0pt,
+    line cap=round,
+    line width=\forallLineWidth,
+  ]
+  \draw
+  (0,0) node (A) {\copy\forallBox}
+  (A.south) ++(-\forallSep-\forallLineWidth,.4\forallLineWidth)
+  coordinate (A1)
+  (A.north west) ++(-\forallSep,-\forallLineWidth)
+  coordinate (A2)
+  (A1) -- (A2)
+  ;%
+}
+\makeatother
+
+\DeclareFontFamily{U}{skulls}{}
+\DeclareFontShape{U}{skulls}{m}{n}{ <-> skull }{}
+\newcommand{\skull}{\text{\usefont{U}{skulls}{m}{n}\symbol{'101}}}

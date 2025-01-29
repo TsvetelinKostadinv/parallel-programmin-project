@@ -1,0 +1,115 @@
+% !TeX root = main.tex
+
+\documentclass[a4paper, oneside]{article}
+% \usepackage[margin=2cm,bottom=4cm]{geometry}
+\addtolength{\oddsidemargin}{-.25in}
+\addtolength{\evensidemargin}{-.25in}
+\addtolength{\textwidth}{1.in}
+
+\usepackage{tsetsko-style}
+\addbibresource{ref.bib}
+
+\title{Final Project}
+\date{\today}
+
+\author{Tsvetelin Kostadinov}
+\newcommand{\univname}{Sofia University "St. Kliment Ohridski"\\Faculty of mathematics and informatics}
+
+% FOR CODE
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+morekeywords={self, stdev, assert},% Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+\begin{document}
+\include{title_page}
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+\section{Task Statement}
+Analyze the behavior of the stochastic $\pi$ approximation with parallelization.
+
+The approaches to be compared are:
+\begin{enumerate}
+    \item Sequential calculation;
+    \item Multiprocessing calculation without pooling;
+    \item Multiprocessing with process pooling;
+    \item Multiprocessing with thread pooling;
+    \item Multiprocessing with MPI
+\end{enumerate}
+
+In order to be able to accurately comment on the differences between approaches, the number of iterations will be slightly altered with a factor of 100, bringing the total number of samples to 100 000 000.
+
+TODO:
+ThreadPool for IO bound jobs - not our case
+Pool for CPU bound jobs - our case
+
+If have time - ThreadPoolExecutor and ProcessPoolExecutor
+% https://docs.python.org/3.6/library/concurrent.futures.html?highlight=concurrent%20futures#threadpoolexecutor
+% https://docs.python.org/3.6/library/concurrent.futures.html?highlight=concurrent%20futures#processpoolexecutor
+
+\section{Algorithms Used}
+\subsection{Sequential}
+The code can be found at \figref{fig:sequential}
+
+\section{Results Description}
+\section{Future Improvements}
+\subsection{Sequential}
+The sequential approach would benefit from using vectorised instructions in the fashion on SIMD.
+
+Moreover, optimizing the linear case will benefit all other approaches. Inherently all other techniques deconstruct into some number of sequential calculations.
+\section{Conclusion}
+
+\appendix
+\section{Code Fragments}
+\begin{figure}[h!]
+    \centering
+    \pythonexternal{./resources/code/sequential.py}
+    \caption{Sequential stochastic algorithm}
+    \label{fig:sequential}
+\end{figure}
+
+\section{Timing Results}
+% \begin{table}[h!]
+%     \centering
+%     \begin{tabular}{c | c}
+%     \end{tabular}
+%     \caption{Results from sequential calculation}
+% \end{table}
+
+% \printbibliography
+\end{document}
