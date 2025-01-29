@@ -14,7 +14,7 @@ def calc_pi(iterations: int):
     for _ in range(iterations):
         (x,y) = (random(), random())
         count += (x * x + y * y < 1.0)
-    return float(count) / float(iterations)
+    return 4.0 * float(count) / float(iterations)
 
 assert samples > 0
 assert iterations > 0
