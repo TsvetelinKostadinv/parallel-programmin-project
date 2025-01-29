@@ -1,0 +1,30 @@
+version: '2'
+
+services:
+  sequential:
+    container_name: sequential
+    build:
+      context: .
+      dockerfile: sequential.dockerfile
+    environment:
+      - SAMPLES=10
+      - ITERATIONS=10000000
+
+  parallel-no-pool:
+    container_name: parallel-no-pool
+    build:
+      context: .
+      dockerfile: parallel-no-pool.dockerfile
+    environment:
+      - SAMPLES=10
+      - ITERATIONS=10000000
+
+  parallel-process-pool:
+    container_name: parallel-process-pool
+    build:
+      context: .
+      dockerfile: parallel-process-pool.dockerfile
+    environment:
+      - SAMPLES=10
+      - WORKLOAD=1000000
+      - NUM_WORKERS=10
