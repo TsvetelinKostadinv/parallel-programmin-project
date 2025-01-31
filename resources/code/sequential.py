@@ -9,6 +9,10 @@ iterations : int = int(os.getenv("ITERATIONS", 1_000_000))
 ext_seed : int = int(os.getenv("SEED", 0xdeadbeef))
 result : float = 0.0
 
+print('Doing ', samples, ' runs')
+print('Each with ', iterations, ' iterations')
+print('Seeding random with ', ext_seed)
+
 def calc_pi(iterations: int):
     count = 0
     for _ in range(iterations):
@@ -16,13 +20,7 @@ def calc_pi(iterations: int):
         count += (x * x + y * y < 1.0)
     return 4.0 * float(count) / float(iterations)
 
-assert samples > 0
-assert iterations > 0
 seed(ext_seed)
-
-print('Doing ', samples, ' runs')
-print('Each with ', iterations, ' iterations')
-print('Seeding random with ', ext_seed)
 for i in range(samples):
     print('\t Starting iteration', i)
     start_time = time.time()
@@ -36,6 +34,8 @@ for i in range(samples):
     print('\t Elapsed time', elapsed_time)
     print('=' * 32)
     times.append(elapsed_time)
+
+times = list(map(lambda x: x * 1000, times))
 
 print("Final Results: ")
 print("Calculated value: ", result)

@@ -7,7 +7,7 @@ from random import Random
 from itertools import repeat
 
 samples : int = int(os.getenv("SAMPLES", 5))
-workload : int = int(os.getenv("WORKLOAD", 100_000))
+workload : int = int(os.getenv("WORKLOAD", 1_000_000))
 num_workers : int = int(os.getenv("NUM_WORKERS", 10))
 logical_cores : int = multiprocessing.cpu_count()
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     times : list[float] = []
     print('Doing ', samples, ' runs')
     print('Each with ', workload * num_workers, ' iterations')
-    print('With ', logical_cores, ' computation units')
+    print('With ', num_workers, ' computation units')
     for i in range(samples):
         result = 0.0
         print('\t Starting iteration', i)
@@ -61,6 +61,8 @@ if __name__ == '__main__':
         times.append(elapsed_time)
     print('=' * 32)
     print('=' * 32)
+    
+    times = list(map(lambda x: x * 1000, times))
 
     print("Final Results: ")
     print('Times: ', times)

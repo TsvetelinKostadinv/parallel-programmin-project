@@ -9,6 +9,8 @@
 \usepackage{tsetsko-style}
 \addbibresource{ref.bib}
 
+\usepackage[section]{placeins}
+
 \title{Final Project}
 \date{\today}
 
@@ -72,50 +74,249 @@ The approaches to be compared are:
     \item Multiprocessing with MPI
 \end{enumerate}
 
-In order to be able to accurately comment on the differences between approaches, the number of iterations will be slightly altered with a factor of 100, bringing the total number of samples to 100 000 000.
-
-TODO:
-ThreadPool for IO bound jobs - not our case
-Pool for CPU bound jobs - our case
-
-If have time - ThreadPoolExecutor and ProcessPoolExecutor
-% https://docs.python.org/3.6/library/concurrent.futures.html?highlight=concurrent%20futures#threadpoolexecutor
-% https://docs.python.org/3.6/library/concurrent.futures.html?highlight=concurrent%20futures#processpoolexecutor
+In order to be able to accurately comment on the differences between approaches, the number of iterations will be slightly altered with a factor of 10, bringing the total number of samples to 10 000 000.
 
 \section{Algorithms Used}
 \subsection{Benchmark isolation}
-In order to isolate the benchmark code from the disturbances of the host system an precaution has been taken - the code is being run in a container. This will further exaggerate the differences between each of the techniques and algorithms.
+To ensure the benchmark results are not influenced by disturbances from the host system, a precautionary measure has been implemented: the code is executed within a containerized environment. Running the benchmarks in a container provides a controlled and consistent runtime environment, minimizing external factors such as background processes, resource contention, or varying system loads. Additionally, this setup amplifies the observable differences between the various techniques and algorithms, offering a clearer comparison of their performance characteristics under similar conditions.
 
 \subsection{Reproducibility of results}
-Using pseudorandom distribution with the default seed in Python (which is the current time in seconds since Epoch) leads to unreliable reproducibility on different machines. The approach to mitigate this issue is that we provide an external seed that is chosen as some integer (by default 3735928559).
+Using Python's default pseudorandom distribution, which relies on the current time in seconds since the Epoch as its seed, results in inconsistent reproducibility across different machines or runs. This lack of reproducibility can complicate performance analysis and comparison. To address this issue, an external seed is explicitly provided to the random number generator. This seed is chosen as a fixed integer value (defaulting to 3735928559) to ensure that the sequence of pseudorandom numbers remains consistent across executions, regardless of the runtime environment. This approach enhances the reliability and repeatability of the benchmarks, making them more suitable for fair comparisons.
+
+\subsection{Units note}
+All time measurements in this project are standardized to milliseconds for consistency across the analysis. While the results displayed are truncated to two decimal places for simplicity and readability, the underlying calculations retain a higher degree of accuracy. This ensures that the raw data remains precise for any further analysis or validation, while the simplified presentation makes it easier to compare and interpret the results.
 
 \subsection{Sequential}
-The code can be found at \figref{fig:sequential}
+The implementation of this algorithm can be found in \figref{fig:sequential}. It employs the standard stochastic approximation approach for estimating $\pi$. The algorithm works by sequentially generating random points within a unit square and checking whether each point falls inside a circle of radius 1, centered at the origin.
+
+This method is straightforward and serves as a foundational example of stochastic approximation. One of its notable advantages is its inherent suitability for parallelization. The algorithm exhibits a high degree of data parallelism, as each random point generation and its corresponding evaluation are independent operations. While there are no explicit data dependencies between points, the conditional incrementing of the count of points inside the circle can be viewed as a minor dependency.
+
+This simplicity, combined with its potential for parallel execution, makes the sequential approach an excellent starting point for exploring more advanced parallel implementations.
+
+\subsection{Manual Process Orchestration}
+The implementation for this approach is shown in \figref{fig:manual-process}. This method leverages part or all of the available logical cores to parallelize the computation. Each process is assigned an independent workload, with all processes receiving an equal share of the total work—an approach known as static scheduling. This static division eliminates the need for dynamic workload dispatch, simplifying the workload distribution logic.
+
+However, the simplicity of static scheduling comes at the cost of increased code complexity due to the manual management of processes. Developers must explicitly track the lifecycle of each process, including creation, execution, and termination. Additionally, handling shared memory becomes a critical aspect of this approach. Care must be taken to ensure that shared memory resources are accessed correctly to avoid race conditions or data corruption.
+
+Despite its challenges, this method provides a clear introduction to process-level parallelization and highlights the intricacies of managing parallel workloads manually. It serves as a useful reference point for understanding how more automated frameworks improve upon this foundational approach.
+
+\subsection{Process/Thread Pooling}
+This approach builds upon the principles of manual process orchestration but introduces the concept of pooling. Instead of creating and terminating processes or threads on demand for each workload, a fixed pool of processes or threads is created at the start of execution. These resources are reused throughout the computation, significantly reducing the overhead associated with frequent creation and destruction.
+
+Pooling improves efficiency, as it eliminates the costly setup and teardown phases for processes or threads. However, it introduces additional considerations. One critical aspect is managing configuration parameters, such as the size of the pool. Poorly chosen configurations can lead to excessive context switching, particularly if the number of active threads or processes exceeds the number of available logical cores. This can degrade performance and offset the benefits of pooling.
+
+The implementation details for process pooling are illustrated in \figref{fig:process-pool}, while thread pooling is demonstrated in \figref{fig:thread-pool}. These examples showcase how pooling can streamline parallel execution while maintaining simplicity and scalability when properly configured.
+
+\subsection{Message Passing Interface}
+The MPI-based approach represents a significant simplification in terms of code complexity compared to manual orchestration or pooling techniques. By leveraging the MPI library, much of the low-level management of processes and communication is abstracted away, allowing developers to focus on distributing workloads and aggregating results.
+
+The primary consideration with this approach is the prerequisite of installing additional software, such as an MPI runtime library (e.g., OpenMPI or MPICH). This introduces an initial setup step that may not be required for other approaches but enables seamless execution of distributed tasks across multiple nodes or cores.
+
+The implementation details for this method are shown in \figref{fig:mpi}, highlighting how MPI facilitates efficient and scalable parallelization with minimal code overhead. It is particularly well-suited for scenarios involving distributed systems or high-performance computing environments, where its scalability and portability shine.
 
 \section{Results Description}
+\subsection{Sequential}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c | c}
+        \hline
+        Min            & 203.33 \\
+        \hline
+        Max            & 299.73 \\
+        \hline
+        Average        & 258.34 \\
+        \hline
+        Std. Deviation & 41.56  \\
+        \hline
+    \end{tabular}
+    \caption{Statistical metrics from 5 runs of sequential}
+    \label{table:stat-sequential}
+\end{table}
+The results in \tabref{table:stat-sequential} provide the baseline performance metrics for the sequential implementation. This approach serves as the reference point for evaluating the efficiency and scalability of the other parallelized techniques.
+
+The metrics indicate consistent performance, with moderate variability in execution times across the five runs. This variability may stem from minor fluctuations in system load or external factors during execution. As the simplest implementation, the sequential approach establishes a foundation for comparing the impact of parallelization strategies on both performance and consistency.
+
+\subsection{Manual Process Orchestration}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c | c | c | c}
+        Metric         & coeff. $\frac{1}{4}$ & coeff. $\frac{1}{2}$ & coeff. 1 \\
+        \hline
+        Min            & 1763.83              & 1516.57              & 1334.54  \\
+        \hline
+        Max            & 2309.78              & 1788.13              & 1961.44  \\
+        \hline
+        Average        & 2074.37              & 1680.38              & 1566.67  \\
+        \hline
+        Std. Deviation & 224.31               & 122.41               & 249.09   \\
+        \hline
+    \end{tabular}
+    \caption{Statistical metrics from 5 runs of manually operated processes}
+    \label{table:manual-processes}
+\end{table}
+The results in \tabref{table:manual-process} reflect the performance metrics for the manual process orchestration approach, where the workload is distributed across varying numbers of logical cores, with three different coefficients (¼, ½, and 1) representing the proportion of available cores used.
+
+Interestingly, the results from the manual orchestration approach are slower than the sequential implementation. This can largely be attributed to the overhead involved in initializing each process. For each process, a new context is created, and a separate Python interpreter is launched. This process initialization is resource-intensive and contributes significantly to the overall execution time, overshadowing the potential performance gains from parallelization in some cases.
+
+That being said, the performance improves as more processes are used, in line with expectations for highly parallelizable problems. The fastest and average execution times consistently improve with the increase in processes, demonstrating the effectiveness of parallel execution for this particular workload. However, the performance improvements may not be as significant as expected due to the relatively small problem size (only 10 million points). With smaller problem sizes, the overhead of parallelization can outweigh the benefits of parallel execution, limiting the observed performance gains.
+
+An interesting observation is that the most consistent performance (as indicated by the lowest standard deviation) occurs when using half of the logical cores. This can be explained by the architecture of the Intel CPU used, where half the logical cores correspond to the number of physical cores, reducing the potential for excessive context switching or resource contention.
+
+These results emphasize the trade-offs between parallelism and process management overhead, as well as the importance of selecting optimal configurations based on the system architecture.
+
+\subsection{Thread/Process Pooling}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c | c}
+        \hline
+        Min            & 1121.88 \\
+        \hline
+        Max            & 1514.98 \\
+        \hline
+        Average        & 1387.24 \\
+        \hline
+        Std. Deviation & 160.07  \\
+        \hline
+    \end{tabular}
+    \caption{Statistical metrics from from 5 runs with process pooling}
+    \label{table:process-pool}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c | c}
+        \hline
+        Min            & 2103.49 \\
+        \hline
+        Max            & 2603.54 \\
+        \hline
+        Average        & 2315.36 \\
+        \hline
+        Std. Deviation & 209.10  \\
+        \hline
+    \end{tabular}
+    \caption{Statistical metrics from 5 runs with thread pooling}
+    \label{table:thread-pool}
+\end{table}
+The results for both process and thread pooling, as shown in \tabref{table:process-pool} and \tabref{table:thread-pool}, demonstrate a clear improvement over the manual process orchestration approach.
+
+The primary advantage of pooling lies in eliminating the overhead of initializing new threads or processes for each task. By reusing pre-allocated resources, the system avoids the costly context-switching and resource allocation required when creating new threads or processes, leading to faster execution times and more efficient parallel execution.
+
+Both process and thread pooling show better performance and reduced variability in execution times compared to manual process orchestration. While process pooling generally outperforms thread pooling in terms of execution time, both approaches provide more reliable results, as indicated by the smaller deviations.
+
+It's also worth noting that there is a general consensus in parallel computing that process pools are better suited for CPU-bound tasks, where the workload is computationally intensive, as they avoid the overhead of Python's Global Interpreter Lock (GIL). In contrast, thread pools are typically more appropriate for I/O-bound operations, where the primary bottleneck is waiting for external resources (such as disk or network access), as threads can run concurrently while waiting for these operations to complete.
+
+The key takeaway is that pooling, whether using processes or threads, offers a significant improvement in both speed and reliability. The reduction in initialization overhead, along with the more consistent performance, makes pooling a more efficient and practical approach for parallelizing the task. Furthermore, the simplification of the code by removing the need for manual process management strengthens the argument for using pooling instead of manually orchestrating processes.
+
+Overall, pooling emerges as the more effective solution, offering both improved performance and easier code maintenance.
+
+\subsection{With Message Passing Interface}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c | c}
+        \hline
+        Min            & 1303 \\
+        \hline
+        Max            & 1590 \\
+        \hline
+        Average        &  1438.6 \\
+        \hline
+        Std. Deviation & 102.72  \\
+        \hline
+    \end{tabular}
+    \caption{Statistical metrics from 5 runs with MPI}
+    \label{table:mpi}
+\end{table}
+The results in Table 5 show the performance metrics for the Message Passing Interface (MPI) approach. Compared to both thread and process pooling, MPI demonstrates faster execution times and more reliable performance, as reflected in the lower standard deviation.
+
+MPI's primary strength lies in its ability to efficiently distribute tasks across multiple processing nodes or cores, allowing for highly parallelized operations with minimal overhead. The reduced deviation in execution times indicates that MPI is better at maintaining consistent performance, even when scaling across multiple processors. This is particularly beneficial in distributed systems or high-performance computing environments, where stability and scalability are key considerations.
+
+Despite its setup requirements, such as the need for additional software (MPI runtime), MPI's ability to handle parallel tasks with minimal resource contention makes it a strong contender for large-scale or high-performance applications. As seen from the results, it not only outperforms thread and process pooling in terms of speed but also in consistency, further solidifying its value in parallel processing scenarios.
+
 \section{Future Improvements}
 \subsection{Sequential}
-The sequential approach would benefit from using vectorised instructions in the fashion on SIMD.
+The sequential approach could be significantly improved by incorporating vectorized instructions, particularly those available through Single Instruction, Multiple Data (SIMD) techniques. SIMD allows multiple data points to be processed in parallel within a single instruction cycle, which can drastically improve the efficiency of computationally intensive tasks. By utilizing SIMD, the sequential algorithm would be able to process multiple random points and check their inclusion in the circle simultaneously, thereby speeding up the computation.
 
-Moreover, optimizing the linear case will benefit all other approaches. Inherently all other techniques deconstruct into some number of sequential calculations.
+Additionally, optimizing the linear case—where a direct, step-by-step approach is taken—would have a beneficial effect on all other parallelization techniques as well. This is because, regardless of the parallelization method used, all approaches ultimately decompose into a set of smaller sequential tasks that need to be executed. By improving the efficiency of the base sequential calculation, the overall performance of the entire system could be enhanced, potentially leading to better results even in parallelized settings.
+
+In summary, focusing on optimizing the core sequential algorithm not only stands to improve its own performance but also lays the foundation for better parallel execution across all approaches.
+
+\subsection{Parallel}
+The parallel approaches in this study have shown potential, but there are several areas for improvement, primarily revolving around the configuration of parameters and system optimizations. One of the key factors limiting performance is the improper tuning of configuration parameters, which affects both hardware utilization and context-switching overhead. These parameters need to be set optimally to ensure that the system can make the best use of available resources, minimizing idle times and reducing the cost of switching between tasks.
+
+In terms of communication between parallel workers, the problem's nature minimizes this requirement. Since there is a single point of communication at the end, where the results from all workers are aggregated and a simple arithmetic operation is performed, there is little room for optimizing communication. Similarly, because no synchronization between the workers is necessary, we can rule out any improvements in that area as well. The lack of inter-worker communication and synchronization makes the parallel approach less complex but also limits opportunities for further refinement in these areas.
+
+Another consideration is the static load scheduling used across all the parallel approaches. Given that each worker performs an equally difficult task (i.e., generating random points and checking whether they fall within the circle), dynamic load balancing would not yield significant performance gains. While dynamic scheduling can be beneficial in cases where workloads vary greatly in complexity, here, the tasks are fairly uniform, meaning a static approach is likely sufficient.
+
+However, there is an opportunity to reduce the cost of context switching through techniques like process pinning. By binding processes or threads to specific CPU cores, we can ensure that they run on the same cores throughout the execution. This can significantly reduce context switching overhead, improve cache locality, and ultimately enhance performance.
+
+On the memory management side, the current approach does not utilize complex data structures that could potentially impact performance. However, exploring more efficient data structures tailored to the parallel processing model, such as lock-free structures or pre-allocated memory buffers, could reduce memory allocation overhead and improve cache efficiency.
+
+In terms of hardware optimization, a promising area to explore is GPU acceleration. If the algorithm could be made branchless, this would allow for much more efficient execution on GPUs, which excel at executing the same operation on multiple data points simultaneously. While this approach could offer substantial speedup for larger problem sizes, it's important to remember that there is inherent overhead associated with transferring data between the main memory (RAM) and the GPU memory (VRAM). Careful consideration must be given to this transfer cost to ensure that the performance gains outweigh the overhead.
+
+Finally, NUMA (Non-Uniform Memory Access) architectures, where memory access times depend on the location of the memory relative to the processor, may not be fully exploited in this setup. Since each worker operates independently with its own local memory, NUMA optimizations are not applicable in this case. However, for larger-scale parallelism, where data sharing between workers is necessary, optimizing for NUMA systems could help reduce memory access latencies.
+
+
 \section{Conclusion}
+In conclusion, while the data suggests that the sequential approach produces the fastest results in this specific case, this is not necessarily an accurate reflection of its true performance potential. The key factor here is the small problem size—only 10 million samples—where the overhead of parallelization outweighs the benefits of distributing the work across multiple threads or processes. Given this, the parallel approaches struggle to demonstrate their speedup potential, as the cost of managing multiple workers (e.g., process creation and context switching) is too significant when dealing with relatively small workloads.
 
+However, with larger problem sizes—such as 1 billion samples—the parallel approaches would likely show their strength more clearly. The overhead from parallelization would be amortized over a larger number of tasks, allowing for greater performance improvements. In such cases, the time required for processing a single sample becomes more significant, and the parallelization benefits, including reduced overall runtime, would be more apparent.
+
+Among the parallel approaches tested, the Message Passing Interface (MPI) stands out as the most effective solution. It not only offers the highest performance but also simplifies the implementation process by abstracting away much of the complexity involved in worker management. MPI's scalability, combined with its relatively low overhead and ease of use, makes it the most suitable choice for large-scale parallel tasks.
+
+In summary, while parallelism can offer significant speedups, its benefits are only fully realized with larger datasets. For smaller problems, the sequential approach may still be competitive, but for more substantial workloads, MPI emerges as the clear winner, offering both simplicity and performance.
+
+\newpage
 \appendix
 \section{Code Fragments}
-\begin{figure}[h!]
+\begin{figure}[!htb]
     \centering
-    \pythonexternal{./resources/code/sequential.py}
-    \caption{Sequential stochastic algorithm}
+    \pythonexternal[firstline=16, lastline=38]{./resources/code/sequential.py}
+    \caption{Fragment of sequential stochastic algorithm}
     \label{fig:sequential}
+\end{figure}
+\begin{figure}[!htb]
+    \centering
+    \pythonexternal[firstline=17, lastline=51]{./resources/code/parallel-no-pool.py}
+    \caption{Fragment of manually distributing tasks}
+    \label{fig:manual-process}
+\end{figure}
+\begin{figure}[!htb]
+    \centering
+    \pythonexternal[firstline=18, lastline=40]{./resources/code/parallel-process-pool.py}
+    \caption{Fragment of process pooling}
+    \label{fig:process-pool}
+\end{figure}
+\begin{figure}[!htb]
+    \centering
+    \pythonexternal[firstline=16, lastline=37]{./resources/code/parallel-thread-pool.py}
+    \caption{Fragment of thread pooling}
+    \label{fig:thread-pool}
+\end{figure}
+\begin{figure}[!htb]
+    \centering
+    \pythonexternal{./resources/code/parallel-mpi.py}
+    \caption{Code for using message passing interface}
+    \label{fig:mpi}
 \end{figure}
 
 \section{Timing Results}
-% \begin{table}[h!]
-%     \centering
-%     \begin{tabular}{c | c}
-%     \end{tabular}
-%     \caption{Results from sequential calculation}
-% \end{table}
+\begin{table}[!htb]
+    \centering
+    \begin{tabular}{c | c | c | c | c | c }
+        Approach                                & Run 1   & Run 2   & Run 3   & Run 4   & Run 5   \\
+        \hline
+        Sequential                              & 203.33  & 299.73  & 253.58  & 298.97  & 236.08  \\
+        MPO\footnotemark (coeff. $\frac{1}{4}$) & 2309.78 & 2228.80 & 1928.86 & 1763.83 & 2140.59 \\
+        MPO (coeff. $\frac{1}{2}$)              & 1516.57 & 1585.10 & 1788.13 & 1777.98 & 1734.15 \\
+        MPO (coeff. 1)                          & 1444.25 & 1961.44 & 1334.54 & 1652.97 & 1440.15 \\
+        Process Pool                            & 1121.88 & 1380.54 & 1510.83 & 1514.98 & 1407.96 \\
+        Thread Pool                            & 2461.46 & 2603.54 & 2103.49 & 2224.92 & 2183.37 \\
+        MPI                            & 1436 & 1412 & 1590 & 1303 & 1452 \\
+        \hline
+    \end{tabular}
+    \caption{Results from approaches (rounded to 2 decimal points)}
+\end{table}
+\footnotetext{Manual Process Orchestration}
 
 % \printbibliography
 \end{document}

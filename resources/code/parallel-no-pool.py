@@ -76,6 +76,8 @@ if __name__ == '__main__':
             times.append(elapsed_time)
         print('=' * 32)
         print('=' * 32)
+        
+        times = list(map(lambda x: x * 1000, times))
 
         print("Final Results: ")
         print('Times: ', times)

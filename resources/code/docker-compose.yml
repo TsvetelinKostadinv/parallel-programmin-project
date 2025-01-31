@@ -28,3 +28,22 @@ services:
       - SAMPLES=10
       - WORKLOAD=1000000
       - NUM_WORKERS=10
+
+  parallel-thread-pool:
+    container_name: parallel-thread-pool
+    build:
+      context: .
+      dockerfile: parallel-thread-pool.dockerfile
+    environment:
+      - SAMPLES=10
+      - WORKLOAD=1000000
+      - NUM_WORKERS=8
+
+  parallel-mpi:
+    container_name: parallel-mpi
+    build:
+      context: .
+      dockerfile: parallel-mpi.dockerfile
+    environment:
+      - SAMPLES=10
+      - WORKLOAD=1000000
